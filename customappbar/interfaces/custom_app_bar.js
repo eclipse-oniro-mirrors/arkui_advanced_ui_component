@@ -16,21 +16,19 @@ if (!('finalizeConstruction' in ViewPU.prototype)) {
     Reflect.set(ViewPU.prototype, 'finalizeConstruction', () => { });
 }
 // 引入依赖文件
-const commonEventManager = requireNapi('commonEventManager');
 const hilog = requireNapi('hilog');
 const curves = requireNativeModule('ohos.curves');
 const display = requireNapi('display');
 const mediaquery = requireNapi('mediaquery');
 const LengthMetrics = requireNapi('arkui.node').LengthMetrics;
 const systemParameterEnhance = requireNapi('systemParameterEnhance');
-const animator = requireNapi('animator');
-const componentUtils = requireNapi('arkui.componentUtils');
 const hiAppEvent = globalThis.requireNapi('hiviewdfx.hiAppEvent');
 const bundleManager = requireNapi('bundle.bundleManager');
 const deviceInfo = requireNapi('deviceInfo');
 // Menubar作用域内的日志打印前缀
 const LOG_TAG = 'CustomAppBar';
 // 常规模式/全屏嵌入式使用的参数
+const VIEW_WIDTH = 80;
 const VIEW_HEIGHT = 36;
 const BUTTON_SIZE = 40;
 const IMAGE_SIZE = '20vp';
@@ -68,11 +66,6 @@ const TITLE_CONSTRAINT_SIZE = 'calc(100% - 73.5vp)';
 const MD_WIDTH = 480;
 const LG_WIDTH_LIMIT = 0.6;
 const LG_WIDTH_HEIGHT_RATIO = 1.95;
-const PRIVACY_MARGIN = 12;
-const PRIVACY_FONT_SIZE = '12vp';
-const PRIVACY_TEXT_MARGIN_START = 4;
-const PRIVACY_TEXT_MARGIN_END = 8;
-const PRIVACY_CONSTRAINT_SIZE = 'calc(100% - 136vp)';
 // 定义由ArkUI发来的事件名称
 const ARKUI_APP_BAR_COLOR_CONFIGURATION = 'arkui_app_bar_color_configuration';
 const ARKUI_APP_BAR_MENU_SAFE_AREA = 'arkui_app_bar_menu_safe_area';
@@ -88,7 +81,6 @@ const EVENT_NAME_CUSTOM_APP_BAR_CLOSE_CLICK = 'arkui_custom_app_bar_close_click'
 const EVENT_NAME_CUSTOM_APP_BAR_DID_BUILD = 'arkui_custom_app_bar_did_build';
 const EVENT_NAME_CUSTOM_APP_BAR_CREATE_SERVICE_PANEL = 'arkui_custom_app_bar_create_service_panel';
 const ARKUI_APP_BAR_MAXIMIZE = 'arkui_app_bar_maximize';
-const ARKUI_APP_BAR_PRIVACY_AUTHORIZE = 'arkui_app_bar_privacy_authorize';
 const ARKUI_APP_BAR_ON_BACK_PRESSED = 'arkui_app_bar_on_back_pressed';
 const ARKUI_APP_BAR_ON_BACK_PRESSED_CONSUMED = 'arkui_app_bar_on_back_pressed_consumed';
 const ARKUI_APP_BAR_IS_MENUBAR_VISIBLE = 'arkui_menu_bar_visible';
@@ -260,13 +252,6 @@ class MenubarBaseInfo extends ViewPU {
             id: 125831084,
             type: 20000
         };
-        stateProps.privacyResource = {
-            bundleName: '',
-            moduleName: '',
-            params: [],
-            id: 125835516,
-            type: 20000
-        };
         stateProps.menuFillColor = this.getResourceColor(ICON_FILL_COLOR_DEFAULT);
         stateProps.closeFillColor = this.getResourceColor(ICON_FILL_COLOR_DEFAULT);
         stateProps.menubarBorderColor = this.getResourceColor(BORDER_COLOR_DEFAULT);
@@ -274,7 +259,6 @@ class MenubarBaseInfo extends ViewPU {
         stateProps.dividerBackgroundColor = this.getResourceColor(BORDER_COLOR_DEFAULT);
         stateProps.halfButtonBackColor = this.getResourceColor(HALF_BUTTON_BACK_COLOR);
         stateProps.halfButtonImageColor = this.getResourceColor(HALF_BUTTON_IMAGE_COLOR);
-        stateProps.privacyImageColor = this.getResourceColor(HALF_BUTTON_IMAGE_COLOR);
         stateProps.contentMarginTop = 0;
         stateProps.contentMarginLeft = 0;
         stateProps.contentMarginRight = 0;
@@ -299,14 +283,6 @@ class MenubarBaseInfo extends ViewPU {
         stateProps.closeRead = this.getStringByResourceToken(ARKUI_APP_BAR_CLOSE);
         stateProps.maximizeRead = this.getStringByResourceToken(ARKUI_APP_BAR_MAXIMIZE);
         stateProps.provideService = '';
-        stateProps.privacyAuthText = '';
-        stateProps.privacyWidth = '0';
-        stateProps.privacySymbolOpacity = 0;
-        stateProps.angle = '-90deg';
-        stateProps.buttonSize = BUTTON_SIZE;
-        stateProps.privacyTextOpacity = 0;
-        stateProps.dividerOpacity = 0;
-        stateProps.isShowPrivacyAnimation = false;
         stateProps.labelName = '';
         stateProps.isShowMenubar = Visibility.Visible;
         this.__menubarStateProps = stateProps;
@@ -363,7 +339,6 @@ export class CustomAppBar extends MenubarBaseInfo {
         this.icon = { 'id': -1, 'type': 20000, params: ['sys.media.ohos_app_icon'], 'bundleName': '__harDefaultBundleName__', 'moduleName': '__harDefaultModuleName__' };
         this.fullContentMarginTop = 0;
         this.deviceBorderRadius = '0';
-        this.privacyAnimator = undefined;
         this.halfLaunchRatio = undefined;
         this.smListener = mediaquery.matchMediaSync('(0vp<width) and (width<600vp)');
         this.mdListener = mediaquery.matchMediaSync('(600vp<=width) and (width<840vp)');
@@ -373,7 +348,6 @@ export class CustomAppBar extends MenubarBaseInfo {
         this.mdVerticalListener = mediaquery.matchMediaSync('(600vp<=height) and (height<840vp)');
         this.lgVerticalListener = mediaquery.matchMediaSync('(840vp<=height) and (height<1440vp)');
         this.xlVerticalListener = mediaquery.matchMediaSync('(1440vp<=height)');
-        this.subscriber = null;
         this.isEmbedComp = false;
         this.isSystemApp = false;
         this.isShowRevisit = false;
@@ -388,10 +362,6 @@ export class CustomAppBar extends MenubarBaseInfo {
         this.stopPropagation = (event) => {
             event?.stopPropagation();
         }
-        this.subscribeInfo = {
-            events: ['usual.event.PRIVACY_STATE_CHANGED']
-        };
-        this.timeoutList = [];
         this.setInitiallyProvidedValue(params);
         this.declareWatch('breakPoint', this.onBreakPointChange);
         this.declareWatch('verticalBreakPoint', this.onBreakPointChange);
@@ -464,12 +434,6 @@ export class CustomAppBar extends MenubarBaseInfo {
     }
     aboutToDisappear() {
         this.cleanThrottledHandlers();
-        if (this.timeoutList.length) {
-            this.timeoutList.forEach(id => {
-                clearTimeout(id);
-            });
-            this.timeoutList = [];
-        }
         this.smListener.off('change');
         this.mdListener.off('change');
         this.lgListener.off('change');
@@ -478,52 +442,6 @@ export class CustomAppBar extends MenubarBaseInfo {
         this.mdVerticalListener.off('change');
         this.lgVerticalListener.off('change');
         this.xlVerticalListener.off('change');
-        if (this.subscriber !== null) {
-            commonEventManager.unsubscribe(this.subscriber, (err) => {
-                if (err) {
-                    hilog.error(0x3900, LOG_TAG, `unsubscribe err callback, message is ${err.message}`);
-                }
-                else {
-                    this.subscriber = null;
-                }
-            });
-        }
-    }
-    /**
-     * 注册监听隐私协议状态
-     */
-    subscribePrivacyState() {
-        try {
-            // 创建订阅者
-            commonEventManager.createSubscriber(this.subscribeInfo).then((commonEventSubscriber) => {
-                this.subscriber = commonEventSubscriber;
-                // 订阅公共事件
-                try {
-                    commonEventManager.subscribe(this.subscriber, (err, data) => {
-                        if (err) {
-                            hilog.error(0x3900, LOG_TAG, `subscribe failed, code is ${err?.code}, message is ${err?.message}`);
-                            return;
-                        }
-                        let result = JSON.parse(data?.data ?? '{}')?.resultType;
-                        // privacyMgmtType：1 隐私同意完整模式
-                        if (result === 1) {
-                            if (this.isHalfScreen) {
-                                return;
-                            }
-                            this.isShowPrivacyAnimation = true;
-                            this.startPrivacyAnimation();
-                        }
-                    });
-                } catch (error) {
-                    hilog.error(0x3900, LOG_TAG, `init Subscriber failed, code is ${error?.code}, message is ${error?.message}`);
-                }
-            }).catch((error) => {
-                hilog.error(0x3900, LOG_TAG, `createSubscriber failed, code is ${error?.code}, message is ${error?.message}`);
-            });
-        } catch (error) {
-            hilog.error(0x3900, LOG_TAG,
-                `subscribePrivacyState failed, code is ${error?.code}, message is ${error?.message}`);
-        }
     }
     getDeviceRadiusConfig() {
         try {
@@ -667,7 +585,6 @@ export class CustomAppBar extends MenubarBaseInfo {
         }
         this.closeRead = this.getStringByResourceToken(ARKUI_APP_BAR_CLOSE);
         this.serviceMenuRead = this.getStringByResourceToken(ARKUI_APP_BAR_SERVICE_PANEL);
-        this.privacyAuthText = this.getStringByResourceToken(ARKUI_APP_BAR_PRIVACY_AUTHORIZE);
     }
 
     /**
@@ -847,7 +764,6 @@ export class CustomAppBar extends MenubarBaseInfo {
         this.menubarBackColor = this.getResourceColor(MENU_BACK_COLOR);
         this.halfButtonBackColor = this.getResourceColor(HALF_BUTTON_BACK_COLOR);
         this.halfButtonImageColor = this.getResourceColor(HALF_BUTTON_IMAGE_COLOR);
-        this.privacyImageColor = this.getResourceColor(HALF_BUTTON_IMAGE_COLOR);
     }
     /**
      * 半屏拉起动效
@@ -970,150 +886,6 @@ export class CustomAppBar extends MenubarBaseInfo {
             this.titleOpacity = 0;
         });
     }
-    /**
-     * 开始隐私标识动效
-     */
-    startPrivacyAnimation() {
-        Context.animateTo({
-            curve: curves.interpolatingSpring(2, 1, 328, 26),
-        }, () => {
-            this.privacyWidth = '';
-        });
-        Context.animateTo({
-            duration: 250,
-            curve: Curve.Sharp,
-            delay: 100,
-        }, () => {
-            this.privacyTextOpacity = 1;
-        });
-        Context.animateTo({
-            delay: 200,
-            curve: curves.interpolatingSpring(2, 1, 500, 26),
-        }, () => {
-            this.angle = '0';
-        });
-        Context.animateTo({
-            duration: 100,
-            delay: 200,
-            curve: Curve.Sharp,
-        }, () => {
-            this.privacySymbolOpacity = 1;
-            this.dividerOpacity = 1;
-        });
-        // 延迟5s后开始退出动画
-        const timeoutId = setTimeout(() => {
-            this.initPrivacyAnimator();
-            Context.animateTo({
-                duration: 50,
-                curve: Curve.Sharp,
-            }, () => {
-                this.dividerOpacity = 0;
-            });
-            Context.animateTo({
-                duration: 100,
-                curve: Curve.Sharp,
-            }, () => {
-                this.privacyTextOpacity = 0;
-            });
-            Context.animateTo({
-                duration: 150,
-                curve: Curve.Sharp,
-            }, () => {
-                this.privacySymbolOpacity = 0;
-            });
-            this.privacyAnimator?.play();
-            this.timeoutList.splice(this.timeoutList.indexOf(timeoutId));
-        }, 5000);
-        this.timeoutList.push(timeoutId);
-    }
-    /**
-     * 隐私标识动效退出，menubar长度缩小帧动画初始化
-     */
-    initPrivacyAnimator() {
-        let privacyTextLength = px2vp(componentUtils.getRectangleById('AtomicServiceMenuPrivacyId').size.width);
-        let options = {
-            duration: 500,
-            easing: 'interpolating-spring(1, 1, 328, 26)',
-            delay: 0,
-            fill: 'forwards',
-            direction: 'normal',
-            iterations: 1,
-            begin: privacyTextLength + PRIVACY_MARGIN + PRIVACY_TEXT_MARGIN_START + PRIVACY_TEXT_MARGIN_END,
-            end: 0
-        };
-        this.privacyAnimator = animator.create(options);
-        this.privacyAnimator.onFrame = (value) => {
-            // 当动画帧值小于0.01时，不做动画。
-            if (value <= 0 && Math.abs(value) < 0.01) {
-                this.buttonSize = BUTTON_SIZE;
-                this.privacyWidth = '0';
-                return;
-            }
-            // 当动画帧值小于0时，对menu按钮做动画；大于0时，对隐私动效宽度做动画。
-            if (value < 0) {
-                this.buttonSize = BUTTON_SIZE + value;
-            } else {
-                this.privacyWidth = JSON.stringify(value);
-            }
-        };
-        this.privacyAnimator.onFinish = () => {
-            this.isShowPrivacyAnimation = false;
-        };
-    }
-    privacySecurityLabel(parent = null) {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.width(this.privacyWidth);
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            SymbolGlyph.create(this.privacyResource);
-            SymbolGlyph.fontSize(IMAGE_SIZE);
-            SymbolGlyph.fontColor([this.privacyImageColor, Color.Blue]);
-            SymbolGlyph.renderingStrategy(SymbolRenderingStrategy.MULTIPLE_COLOR);
-            SymbolGlyph.margin({ start: LengthMetrics.vp(PRIVACY_MARGIN) });
-            SymbolGlyph.opacity(this.privacySymbolOpacity);
-            SymbolGlyph.rotate({
-                x: 0,
-                y: 1,
-                z: 0,
-                centerX: '50%',
-                centerY: '50%',
-                angle: this.angle
-            });
-        }, SymbolGlyph);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.privacyAuthText);
-            Text.fontSize(PRIVACY_FONT_SIZE);
-            Text.fontWeight(FontWeight.Regular);
-            Text.textAlign(TextAlign.Center);
-            Text.padding({
-                start: LengthMetrics.vp(PRIVACY_TEXT_MARGIN_START),
-                end: LengthMetrics.vp(PRIVACY_TEXT_MARGIN_END)
-            });
-            Text.textAlign(TextAlign.Start);
-            Text.textOverflow({ overflow: TextOverflow.Ellipsis });
-            Text.wordBreak(WordBreak.BREAK_WORD);
-            Text.opacity(this.privacyTextOpacity);
-            Text.ellipsisMode(EllipsisMode.END);
-            Text.constraintSize({ maxWidth: PRIVACY_CONSTRAINT_SIZE });
-            Text.fontColor(this.privacyImageColor);
-            Text.renderFit(RenderFit.RESIZE_FILL);
-            Text.maxLines(1);
-            Text.id('AtomicServiceMenuPrivacyId');
-        }, Text);
-        Text.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Divider.create();
-            Divider.id('AtomicServiceDividerId');
-            Divider.vertical(true);
-            Divider.color(this.dividerBackgroundColor);
-            Divider.lineCap(LineCapStyle.Round);
-            Divider.strokeWidth(BORDER_WIDTH);
-            Divider.height(DIVIDER_HEIGHT);
-            Divider.opacity(this.dividerOpacity);
-        }, Divider);
-    }
     fullScreenMenubar(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
@@ -1139,22 +911,10 @@ export class CustomAppBar extends MenubarBaseInfo {
             Row.height(VIEW_HEIGHT);
             Row.align(Alignment.Top);
             Row.draggable(false);
+            Row.width(VIEW_WIDTH);
             Row.geometryTransition('menubar');
             Row.id('AtomicServiceMenubarId');
         }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.isShowPrivacyAnimation) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.privacySecurityLabel.bind(this)();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithChild();
             Button.id('AtomicServiceMenuId');
@@ -1164,7 +924,7 @@ export class CustomAppBar extends MenubarBaseInfo {
                 bottomStart: { value: MENU_RADIUS_VALUE, unit: MENU_RADIUS_UNIT }
             });
             Button.backgroundColor(Color.Transparent);
-            Button.width(this.buttonSize);
+            Button.width(BUTTON_SIZE);
             Button.height(VIEW_HEIGHT);
             Button.accessibilityText(this.serviceMenuRead);
             Gesture.create(GesturePriority.Low);
@@ -1405,7 +1165,6 @@ export class CustomAppBar extends MenubarBaseInfo {
                 }
                 this.updateStringByResource();
                 this.getDeviceRadiusConfig();
-                this.subscribePrivacyState();
             });
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
