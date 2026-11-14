@@ -195,35 +195,31 @@ export class FullScreenLaunchComponent extends ViewPU {
         this.checkAbilityBusy = true;
         try {
             this.resetOptions();
-            abilityManager.queryAtomicServiceStartupRule(this.context, this.appId)
-                .then((data) => {
-                this.checkAbilityBusy = false;
-                if (!data.isOpenAllowed) {
-                    hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
-                    this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
-                    return;
-                }
-                if (data.isEmbeddedAllowed) {
-                    this.isShow = true;
-                    hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
-                    return;
-                }
-                this.popUp();
-                hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
-            }).catch((err) => {
-                this.checkAbilityBusy = false;
-                hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}d:%{public}s', err.code, err.message);
-                if (u === err.code) {
-                    this.popUp();
-                }
-                else {
-                    this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
-                }
-            });
-        } catch (err) {
+            const data = await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
+            if (!data.isOpenAllowed) {
+                hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
+                this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
+                return;
+            }
+            if (data.isEmbeddedAllowed) {
+                this.isShow = true;
+                hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
+                return;
+            }
+            await this.popUp();
+            hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
+        }
+        catch (err) {
+            hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}d:%{public}s', err.code, err.message);
+            if (u === err.code) {
+                await this.popUp();
+            }
+            else {
+                this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
+            }
+        }
+        finally {
             this.checkAbilityBusy = false;
-            hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule sync error!%{public}s', err.message);
-            this.popUp();
         }
     }
     async popUp() {
