@@ -155,34 +155,30 @@ export struct FullScreenLaunchComponent {
     this.checkAbilityBusy = true;
     try {
       this.resetOptions();
-      abilityManager.queryAtomicServiceStartupRule(this.context, this.appId)
-        .then((data: abilityManager.AtomicServiceStartupRule) => {
-          this.checkAbilityBusy = false;
-          if (!data.isOpenAllowed) {
-            hilog.info(0x3900, LOG_TAG, 'is not allowed open!')
-            this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
-            return;
-          }
-          if (data.isEmbeddedAllowed) {
-            this.isShow = true;
-            hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!')
-            return;
-          }
-          this.popUp()
-          hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!')
-        }).catch((err: BusinessError) => {
-          this.checkAbilityBusy = false;
-          hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', err.message)
-          if (errCodeCapabilityNotSupported === err.code) {
-            this.popUp()
-          } else {
-            this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
-          }
-        });
+      const data: abilityManager.AtomicServiceStartupRule =
+        await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
+      if (!data.isOpenAllowed) {
+        hilog.info(0x3900, LOG_TAG, 'is not allowed open!')
+        this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
+        return;
+      }
+      if (data.isEmbeddedAllowed) {
+        this.isShow = true;
+        hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!')
+        return;
+      }
+      await this.popUp()
+      hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!')
     } catch (err) {
+      const e = err as BusinessError;
+      hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', e.message)
+      if (errCodeCapabilityNotSupported === e.code) {
+        await this.popUp()
+      } else {
+        this.pullUpError(e.code, 'query_atomic_service_startup__rule_fail', e.message);
+      }
+    } finally {
       this.checkAbilityBusy = false;
-      hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule sync error!%{public}s', err.message)
-      this.popUp();
     }
   }
  
