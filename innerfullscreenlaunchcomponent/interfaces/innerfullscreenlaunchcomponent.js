@@ -60,6 +60,10 @@ export class InnerFullScreenLaunchComponent extends ViewPU {
         this.checkAbilityBusy = false;
         this.launchAtomicService = (k1, l1) => {
             hilog.info(0x3900, LOG_TAG, 'launchAtomicService, appId: %{public}s.', k1);
+            if (this.checkAbilityBusy) {
+                hilog.info(0x3900, LOG_TAG, 'checkAbility is busy, skip duplicate launch.');
+                return;
+            }
             this.appId = k1;
             this.options = l1;
             this.checkAbility();
@@ -235,12 +239,12 @@ export class InnerFullScreenLaunchComponent extends ViewPU {
             await this.popUp();
         }
         catch (err) {
-            hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', err.message);
+            hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${err.code}, message is ${err.message}`);
             if (ERR_CODE_CAPABILITY_NOT_SUPPORT === err.code) {
                 await this.popUp();
             }
             else {
-                this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
+                this.pullUpError(err.code, 'checkAbility_fail', err.message);
             }
         }
         finally {
