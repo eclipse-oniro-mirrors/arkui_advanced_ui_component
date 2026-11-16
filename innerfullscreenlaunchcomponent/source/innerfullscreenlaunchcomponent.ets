@@ -48,8 +48,11 @@ export struct InnerFullScreenLaunchComponent {
   private subscriber: commonEventManager.CommonEventSubscriber | null = null;
   private apiVersion: number = 0;
   private launchAtomicService = (appId: string, options?: AtomicServiceOptions) => {
-    hilog.info(0x3900, LOG_TAG,
-      'launchAtomicService, appId: %{public}s.', appId);
+    hilog.info(0x3900, LOG_TAG, 'launchAtomicService, appId: %{public}s.', appId);
+    if (this.checkAbilityBusy) {
+      hilog.info(0x3900, LOG_TAG, 'checkAbility is busy, skip duplicate launch.');
+      return;
+    }
     this.appId = appId;
     this.options = options;
     this.checkAbility();
@@ -71,8 +74,7 @@ export struct InnerFullScreenLaunchComponent {
     commonEventManager.createSubscriber(subscribeInfo,
       (err:Base.BusinessError, data: commonEventManager.CommonEventSubscriber) => {
         if (err) {
-          hilog.error(0x3900, LOG_TAG,
-            'Failed to create subscriber, err: %{public}s.', err.message);
+          hilog.error(0x3900, LOG_TAG, 'Failed to create subscriber, err: %{public}s.', err.message);
           return;
         }
 
@@ -85,8 +87,7 @@ export struct InnerFullScreenLaunchComponent {
         commonEventManager.subscribe(this.subscriber,
           (err: Base.BusinessError, data: commonEventManager.CommonEventData) => {
             if (err) {
-              hilog.error(0x3900, LOG_TAG,
-                'Failed to subscribe common event, err: %{public}s.', err.message);
+              hilog.error(0x3900, LOG_TAG, 'Failed to subscribe common event, err: %{public}s.', err.message);
               return;
             }
 
@@ -127,8 +128,7 @@ export struct InnerFullScreenLaunchComponent {
     if (this.subscriber !== null) {
       commonEventManager.unsubscribe(this.subscriber, (err) => {
         if (err) {
-          hilog.error(0x3900, LOG_TAG,
-            'UnsubscribeCallBack, err: %{public}s.', err.message);
+          hilog.error(0x3900, LOG_TAG, 'UnsubscribeCallBack, err: %{public}s.', err.message);
         } else {
           this.subscriber = null;
         }
@@ -192,11 +192,11 @@ export struct InnerFullScreenLaunchComponent {
       await this.popUp();
     } catch (err) {
       const e = err as BusinessError;
-      hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', e.message);
+      hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${e.code}, message is ${e.message}`);
       if (ERR_CODE_CAPABILITY_NOT_SUPPORT === e.code) {
         await this.popUp();
       } else {
-        this.pullUpError(e.code, 'query_atomic_service_startup__rule_fail', e.message);
+        this.pullUpError(e.code, 'checkAbility_fail', e.message);
       }
     } finally {
       this.checkAbilityBusy = false;
