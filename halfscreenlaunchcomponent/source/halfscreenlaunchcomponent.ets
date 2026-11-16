@@ -159,11 +159,11 @@ export struct HalfScreenLaunchComponent {
       await this.popUp();
     } catch (err) {
       const e = err as BusinessError;
-      hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', e.message);
+      hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${e.code}, message is ${e.message}`);
       if (ERR_CODE_CAPABILITY_NOT_SUPPORT === e.code) {
         await this.popUp();
       } else {
-        this.pullUpError(e.code, 'query_atomic_service_startup__rule_fail', e.message);
+        this.pullUpError(e.code, 'checkAbility_fail', e.message);
       }
     } finally {
       this.checkAbilityBusy = false;
