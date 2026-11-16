@@ -210,12 +210,12 @@ export class FullScreenLaunchComponent extends ViewPU {
             hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
         }
         catch (err) {
-            hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}d:%{public}s', err.code, err.message);
+            hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${err.code}, message is ${err.message}`);
             if (u === err.code) {
                 await this.popUp();
             }
             else {
-                this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
+                this.pullUpError(err.code, 'checkAbility_fail', err.message);
             }
         }
         finally {
