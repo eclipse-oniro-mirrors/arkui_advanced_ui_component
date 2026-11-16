@@ -196,12 +196,12 @@ export class HalfScreenLaunchComponent extends ViewPU {
             await this.popUp();
         }
         catch (err) {
-            hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', err.message);
+            hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${err.code}, message is ${err.message}`);
             if (ERR_CODE_CAPABILITY_NOT_SUPPORT === err.code) {
                 await this.popUp();
             }
             else {
-                this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
+                this.pullUpError(err.code, 'checkAbility_fail', err.message);
             }
         }
         finally {
