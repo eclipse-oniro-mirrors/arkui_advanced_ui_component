@@ -144,33 +144,29 @@ export struct HalfScreenLaunchComponent {
     this.checkAbilityBusy = true;
     try {
       this.resetOptions();
-      abilityManager.queryAtomicServiceStartupRule(this.context, this.appId)
-        .then((data: abilityManager.AtomicServiceStartupRule) => {
-          this.checkAbilityBusy = false;
-          if (!data.isOpenAllowed) {
-            hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
-            this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
-            return;
-          }
-          if (data.isEmbeddedAllowed) {
-            this.isShow = true;
-            hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
-            return;
-          }
-          this.popUp();
-        }).catch((err: BusinessError) => {
-          this.checkAbilityBusy = false;
-          hilog.error(0x3900, LOG_TAG, 'queryAtomicServiceStartupRule called error!%{public}s', err.message);
-          if (ERR_CODE_CAPABILITY_NOT_SUPPORT === err.code) {
-            this.popUp();
-          } else {
-          this.pullUpError(err.code, 'query_atomic_service_startup__rule_fail', err.message);
-        }
-      });
+      const data: abilityManager.AtomicServiceStartupRule =
+        await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
+      if (!data.isOpenAllowed) {
+        hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
+        this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
+        return;
+      }
+      if (data.isEmbeddedAllowed) {
+        this.isShow = true;
+        hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
+        return;
+      }
+      await this.popUp();
     } catch (err) {
+      const e = err as BusinessError;
+      hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${e.code}, message is ${e.message}`);
+      if (ERR_CODE_CAPABILITY_NOT_SUPPORT === e.code) {
+        await this.popUp();
+      } else {
+        this.pullUpError(e.code, 'checkAbility_fail', e.message);
+      }
+    } finally {
       this.checkAbilityBusy = false;
-      hilog.error(0x3900, LOG_TAG, 'AtomicServiceStartupRule failed: %{public}s', err.message);
-      this.popUp();
     }
   }
 

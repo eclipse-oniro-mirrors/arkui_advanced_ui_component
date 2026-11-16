@@ -141,30 +141,22 @@ export struct FullScreenLaunchComponent {
     this.checkAbilityBusy = true;
     try {
       this.resetOptions();
-      let embeddedOpenAllowed: boolean = false;
-      abilityManager.isEmbeddedOpenAllowed(this.context, this.appId).then((data: boolean | undefined): void => {
-        this.checkAbilityBusy = false;
-        if(data) {
-          hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed true.');
-          embeddedOpenAllowed = true;
-        } else {
-          hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed false.');
-        }
-        if (embeddedOpenAllowed) {
-          this.isShow = true;
-          hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
-        } else {
-          this.popUp();
-          hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
-        }
-      }).catch((err: BusinessError<void>|null): void => {
-        this.checkAbilityBusy = false;
-        hilog.info(0x0000, LOG_TAG,
-          'isEmbeddedOpenAllowed failed, code is ${err?.code}, message is ${err?.message}');
-      });
+      const embeddedOpenAllowed: boolean | undefined =
+        await abilityManager.isEmbeddedOpenAllowed(this.context, this.appId);
+      if (embeddedOpenAllowed) {
+        hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed true.');
+        this.isShow = true;
+        hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
+      } else {
+        hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed false.');
+        await this.popUp();
+        hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
+      }
     } catch (err) {
+      hilog.info(0x0000, LOG_TAG,
+        `isEmbeddedOpenAllowed failed, code is ${(err as BusinessError)?.code}, message is ${(err as BusinessError)?.message}`);
+    } finally {
       this.checkAbilityBusy = false;
-      hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed sync error');
     }
   }
 
