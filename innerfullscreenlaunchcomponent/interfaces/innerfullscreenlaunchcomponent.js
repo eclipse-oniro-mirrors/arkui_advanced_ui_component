@@ -22,7 +22,6 @@ const commonEventManager = requireNapi('commonEventManager');
 const bundleManager = requireNapi('bundle.bundleManager');
 const innerFullScreenLaunchComponentNapi = requireInternal('arkui.advanced.InnerFullScreenLaunchComponent');
 const atomicServiceDataTag = 'ohos.atomicService.window';
-const ERR_CODE_CAPABILITY_NOT_SUPPORT = 801;
 const API20 = 20;
 const LOG_TAG = 'InnerFullScreenLaunchComponent';
 const ERR_CODE_NOT_OPEN = 16000012;
