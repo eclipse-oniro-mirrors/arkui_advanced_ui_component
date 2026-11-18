@@ -28,7 +28,6 @@ export class LaunchController {
 
 const EMBEDDED_FULL_MODE: number = 1;
 const atomicServiceDataTag: string = 'ohos.atomicService.window';
-const ERR_CODE_CAPABILITY_NOT_SUPPORT: number = 801;
 const API20: number = 20;
 const LOG_TAG: string = 'InnerFullScreenLaunchComponent';
 const ERR_CODE_NOT_OPEN: number = 16000012;
