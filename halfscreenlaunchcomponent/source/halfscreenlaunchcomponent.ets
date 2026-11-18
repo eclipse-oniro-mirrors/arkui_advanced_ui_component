@@ -24,7 +24,6 @@ import window from '@ohos.window';
 
 const EMBEDDED_HALF_MODE = 2;
 const atomicServiceDataTag: string = 'ohos.atomicService.window';
-const ERR_CODE_CAPABILITY_NOT_SUPPORT: number = 801;
 const LOG_TAG: string = 'HalfScreenLaunchComponent';
 const ERR_CODE_NOT_OPEN: number = 16000012;
 const COLOR_HEX_MAX: number = 0xffffffff;
