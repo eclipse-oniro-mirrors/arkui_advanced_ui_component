@@ -184,7 +184,7 @@ export class HalfScreenLaunchComponent extends ViewPU {
             this.resetOptions();
             const data = await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
             if (!data.isOpenAllowed) {
-                hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
+                hilog.error(0x3900, LOG_TAG, 'is not allowed open!');
                 this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
                 return;
             }
@@ -196,13 +196,8 @@ export class HalfScreenLaunchComponent extends ViewPU {
             await this.popUp();
         }
         catch (err) {
-            hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${err.code}, message is ${err.message}`);
-            if (ERR_CODE_CAPABILITY_NOT_SUPPORT === err.code) {
-                await this.popUp();
-            }
-            else {
-                this.pullUpError(err.code, 'checkAbility_fail', err.message);
-            }
+            hilog.error(0x3900, LOG_TAG, 'checkAbility failed, code is %{public}d, message is %{public}s', err.code, err.message);
+            await this.popUp();
         }
         finally {
             this.checkAbilityBusy = false;
