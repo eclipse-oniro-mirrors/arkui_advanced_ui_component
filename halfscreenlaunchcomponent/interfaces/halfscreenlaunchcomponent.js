@@ -23,7 +23,6 @@ const bundleManager = requireNapi('bundle.bundleManager');
 const halfScreenLaunchComponentNapi = requireInternal('atomicservice.HalfScreenLaunchComponent');
 const EMBEDDED_HALF_MODE = 2;
 const atomicServiceDataTag = 'ohos.atomicService.window';
-const ERR_CODE_CAPABILITY_NOT_SUPPORT = 801;
 const LOG_TAG = 'HalfScreenLaunchComponent';
 const ERR_CODE_NOT_OPEN = 16000012;
 const COLOR_HEX_MAX = 0xffffffff;
