@@ -22,7 +22,6 @@ import { bundleManager } from '@kit.AbilityKit';
 import window from '@ohos.window';
 import Base from '@ohos.base';
  
-const errCodeCapabilityNotSupported: number = 801;
 const atomicServiceDataTag: string = 'ohos.atomicService.window';
 const API20: number = 20;
 const requestComponentTerminateKey: string = 'ohos.param.key.requestComponentTerminate';
