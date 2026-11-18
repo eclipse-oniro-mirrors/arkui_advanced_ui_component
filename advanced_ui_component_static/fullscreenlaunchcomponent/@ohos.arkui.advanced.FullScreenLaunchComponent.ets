@@ -168,9 +168,25 @@ export struct FullScreenLaunchComponent {
       hilog.info(0x3900, LOG_TAG, '%{public}s open service success!', ability.want);
     }
     catch (err) {
-      if (err instanceof BusinessError) {
-        hilog.error(0x3900, LOG_TAG, '%{public}s open service error!', err.message);
-      }
+      const e = err as BusinessError;
+      hilog.error(0x3900, LOG_TAG, '%{public}s open service error!', e.message);
+      this.pullUpError(e.code, 'open_atomic_service_fail', e.message);
+    }
+  }
+
+  pullUpError(code: number, name: string, message: string): void {
+    if (!this.onError) {
+      return;
+    }
+    let error: BusinessError = {
+      code: code,
+      name: name,
+      message: message
+    };
+    try {
+      this.onError(error);
+    } catch (err) {
+      hilog.error(0x3900, LOG_TAG, 'onError callback error! %{public}s', (err as BusinessError).message);
     }
   }
 
