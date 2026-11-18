@@ -22,7 +22,6 @@ const commonEventManager = requireNapi('commonEventManager');
 const bundleManager = requireNapi('bundle.bundleManager');
 const fullScreenLaunchComponentNapi = requireInternal('arkui.advanced.FullScreenLaunchComponent');
 const BusinessError = requireNapi('base');
-const u = 801;
 const atomicServiceDataTag = 'ohos.atomicService.window';
 const api20 = 20;
 const requestComponentTerminateKey = 'ohos.param.key.requestComponentTerminate';
