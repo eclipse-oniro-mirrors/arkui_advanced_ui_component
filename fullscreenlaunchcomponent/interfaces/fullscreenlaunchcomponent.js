@@ -22,7 +22,6 @@ const commonEventManager = requireNapi('commonEventManager');
 const bundleManager = requireNapi('bundle.bundleManager');
 const fullScreenLaunchComponentNapi = requireInternal('arkui.advanced.FullScreenLaunchComponent');
 const BusinessError = requireNapi('base');
-const u = 801;
 const atomicServiceDataTag = 'ohos.atomicService.window';
 const api20 = 20;
 const requestComponentTerminateKey = 'ohos.param.key.requestComponentTerminate';
@@ -197,7 +196,7 @@ export class FullScreenLaunchComponent extends ViewPU {
             this.resetOptions();
             const data = await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
             if (!data.isOpenAllowed) {
-                hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
+                hilog.error(0x3900, LOG_TAG, 'is not allowed open!');
                 this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
                 return;
             }
@@ -210,13 +209,8 @@ export class FullScreenLaunchComponent extends ViewPU {
             hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
         }
         catch (err) {
-            hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${err.code}, message is ${err.message}`);
-            if (u === err.code) {
-                await this.popUp();
-            }
-            else {
-                this.pullUpError(err.code, 'checkAbility_fail', err.message);
-            }
+            hilog.error(0x3900, LOG_TAG, 'checkAbility failed, code is %{public}d, message is %{public}s', err.code, err.message);
+            await this.popUp();
         }
         finally {
             this.checkAbilityBusy = false;

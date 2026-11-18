@@ -24,7 +24,6 @@ import window from '@ohos.window';
 
 const EMBEDDED_HALF_MODE = 2;
 const atomicServiceDataTag: string = 'ohos.atomicService.window';
-const ERR_CODE_CAPABILITY_NOT_SUPPORT: number = 801;
 const LOG_TAG: string = 'HalfScreenLaunchComponent';
 const ERR_CODE_NOT_OPEN: number = 16000012;
 const COLOR_HEX_MAX: number = 0xffffffff;
@@ -147,7 +146,7 @@ export struct HalfScreenLaunchComponent {
       const data: abilityManager.AtomicServiceStartupRule =
         await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
       if (!data.isOpenAllowed) {
-        hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
+        hilog.error(0x3900, LOG_TAG, 'is not allowed open!');
         this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
         return;
       }
@@ -159,12 +158,8 @@ export struct HalfScreenLaunchComponent {
       await this.popUp();
     } catch (err) {
       const e = err as BusinessError;
-      hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${e.code}, message is ${e.message}`);
-      if (ERR_CODE_CAPABILITY_NOT_SUPPORT === e.code) {
-        await this.popUp();
-      } else {
-        this.pullUpError(e.code, 'checkAbility_fail', e.message);
-      }
+      hilog.error(0x3900, LOG_TAG, 'checkAbility failed, code is %{public}d, message is %{public}s', e.code, e.message);
+      await this.popUp();
     } finally {
       this.checkAbilityBusy = false;
     }

@@ -148,13 +148,14 @@ export struct FullScreenLaunchComponent {
         this.isShow = true;
         hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
       } else {
-        hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed false.');
+        hilog.error(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed false.');
         await this.popUp();
         hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
       }
     } catch (err) {
-      hilog.info(0x0000, LOG_TAG,
-        `isEmbeddedOpenAllowed failed, code is ${(err as BusinessError)?.code}, message is ${(err as BusinessError)?.message}`);
+      hilog.error(0x0000, LOG_TAG,
+        `checkAbility failed, code is ${(err as BusinessError)?.code}, message is ${(err as BusinessError)?.message}`);
+      await this.popUp();
     } finally {
       this.checkAbilityBusy = false;
     }
@@ -167,9 +168,25 @@ export struct FullScreenLaunchComponent {
       hilog.info(0x3900, LOG_TAG, '%{public}s open service success!', ability.want);
     }
     catch (err) {
-      if (err instanceof BusinessError) {
-        hilog.error(0x3900, LOG_TAG, '%{public}s open service error!', err.message);
-      }
+      const e = err as BusinessError;
+      hilog.error(0x3900, LOG_TAG, '%{public}s open service error!', e.message);
+      this.pullUpError(e.code, 'open_atomic_service_fail', e.message);
+    }
+  }
+
+  pullUpError(code: number, name: string, message: string): void {
+    if (!this.onError) {
+      return;
+    }
+    let error: BusinessError = {
+      code: code,
+      name: name,
+      message: message
+    };
+    try {
+      this.onError(error);
+    } catch (err) {
+      hilog.error(0x3900, LOG_TAG, 'onError callback error! %{public}s', (err as BusinessError).message);
     }
   }
 
