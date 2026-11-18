@@ -148,13 +148,14 @@ export struct FullScreenLaunchComponent {
         this.isShow = true;
         hilog.info(0x3900, LOG_TAG, 'EmbeddedOpen is Allowed!');
       } else {
-        hilog.info(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed false.');
+        hilog.error(0x0000, LOG_TAG, 'isEmbeddedOpenAllowed false.');
         await this.popUp();
         hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
       }
     } catch (err) {
-      hilog.info(0x0000, LOG_TAG,
-        `isEmbeddedOpenAllowed failed, code is ${(err as BusinessError)?.code}, message is ${(err as BusinessError)?.message}`);
+      hilog.error(0x0000, LOG_TAG,
+        `checkAbility failed, code is ${(err as BusinessError)?.code}, message is ${(err as BusinessError)?.message}`);
+      await this.popUp();
     } finally {
       this.checkAbilityBusy = false;
     }
