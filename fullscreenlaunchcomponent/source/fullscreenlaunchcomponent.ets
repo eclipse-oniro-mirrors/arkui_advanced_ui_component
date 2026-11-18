@@ -158,7 +158,7 @@ export struct FullScreenLaunchComponent {
       const data: abilityManager.AtomicServiceStartupRule =
         await abilityManager.queryAtomicServiceStartupRule(this.context, this.appId);
       if (!data.isOpenAllowed) {
-        hilog.info(0x3900, LOG_TAG, 'is not allowed open!');
+        hilog.error(0x3900, LOG_TAG, 'is not allowed open!');
         this.pullUpError(ERR_CODE_NOT_OPEN, 'atomic_service_open_fail', 'is not allowed open!');
         return;
       }
@@ -171,12 +171,8 @@ export struct FullScreenLaunchComponent {
       hilog.info(0x3900, LOG_TAG, 'popUp is Allowed!');
     } catch (err) {
       const e = err as BusinessError;
-      hilog.error(0x3900, LOG_TAG, `checkAbility failed, code is ${e.code}, message is ${e.message}`);
-      if (errCodeCapabilityNotSupported === e.code) {
-        await this.popUp();
-      } else {
-        this.pullUpError(e.code, 'checkAbility_fail', e.message);
-      }
+      hilog.error(0x3900, LOG_TAG, 'checkAbility failed, code is %{public}d, message is %{public}s', e.code, e.message);
+      await this.popUp();
     } finally {
       this.checkAbilityBusy = false;
     }
