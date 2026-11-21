@@ -175,10 +175,15 @@ export struct CustomAppBarForPC {
    * @param param 参数
    */
   setCustomCallback(eventName: string, param: string) {
+    if (param === null || param === '' || param === undefined) {
+      hilog.warn(0x0000, 'testTag', 'invalid params');
+      return;
+    }
+    hilog.info(0x0000, 'testTag', `setCustomCallback called, eventName = ${eventName}`);
     if (eventName === ARKUI_APP_BAR_COLOR_CONFIGURATION) {
       this.onColorConfigurationUpdate(this.parseBoolean(param));
     } else if (eventName === ARKUI_APP_BAR_MENU_SAFE_AREA) {
-      this.statusBarHeight = Number(param);
+      this.statusBarHeight = height;
     } else if (eventName === ARKUI_APP_BAR_CONTENT_SAFE_AREA) {
       //top left right bottom
       let splitArray: string[] = param.split('|');
