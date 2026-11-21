@@ -177,13 +177,14 @@ export struct CustomAppBarForPC {
   setCustomCallback(eventName: string, param: string) {
     if (eventName === ARKUI_APP_BAR_COLOR_CONFIGURATION) {
       this.onColorConfigurationUpdate(this.parseBoolean(param));
+    } else if (eventName === ARKUI_APP_BAR_MENU_SAFE_AREA) {
+      this.statusBarHeight = Number(param);
     } else if (eventName === ARKUI_APP_BAR_CONTENT_SAFE_AREA) {
       //top left right bottom
       let splitArray: string[] = param.split('|');
       if (splitArray.length < 4) {
         return;
       }
-      this.statusBarHeight = Number(splitArray[0]);
       this.contentMarginTop = splitArray[0];
       this.contentMarginLeft = splitArray[1];
       this.contentMarginRight = splitArray[2];
