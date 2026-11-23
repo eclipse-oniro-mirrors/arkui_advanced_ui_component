@@ -349,7 +349,7 @@ export class CustomAppBarForPC extends ViewPU {
             this.onColorConfigurationUpdate(this.parseBoolean(param));
         }
         else if (eventName === ARKUI_APP_BAR_MENU_SAFE_AREA) {
-            this.statusBarHeight = height;
+            this.statusBarHeight = Number(param);
         }
         else if (eventName === ARKUI_APP_BAR_CONTENT_SAFE_AREA) {
             //top left right bottom
