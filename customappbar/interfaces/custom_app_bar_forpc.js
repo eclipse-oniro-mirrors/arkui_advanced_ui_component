@@ -21,6 +21,7 @@ const hilog = requireNapi('hilog');
 const window = requireNapi('window');
 const LengthMetrics = requireNapi('arkui.node').LengthMetrics;
 
+const LOG_TAG = 'CustomAppBarForPc';
 const BUTTON_WIDTH = 28;
 const VIEW_HEIGHT = 28;
 const IMAGE_SIZE = 16;
@@ -272,7 +273,7 @@ export class CustomAppBarForPC extends ViewPU {
         let bundleFlags = bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_HAP_MODULE;
         try {
             bundleManager.getBundleInfoForSelf(bundleFlags).then((data) => {
-                hilog.info(0x0000, 'testTag', 'getBundleInfoForSelf successfully. Data: %{public}s', JSON.stringify(data.hapModulesInfo[0].deviceTypes));
+                hilog.info(0x3900, LOG_TAG, 'getBundleInfoForSelf successfully. Data: %{public}s', JSON.stringify(data.hapModulesInfo[0].deviceTypes));
                 let devicetype = data.hapModulesInfo[0].deviceTypes;
                 for (let i = 0; i < devicetype.length; i++) {
                     if (devicetype[i] === '2in1') {
@@ -281,12 +282,12 @@ export class CustomAppBarForPC extends ViewPU {
                     }
                 }
             }).catch((err) => {
-                hilog.error(0x0000, 'testTag', 'getBundleInfoForSelf failed. Cause: %{public}s', err.message);
+                hilog.error(0x3900, LOG_TAG, 'getBundleInfoForSelf failed. Cause: %{public}s', err.message);
             });
         }
         catch (err) {
             let message = err.message;
-            hilog.error(0x0000, 'testTag', 'getBundleInfoForSelf failed: %{public}s', message);
+            hilog.error(0x3900, LOG_TAG, 'getBundleInfoForSelf failed: %{public}s', message);
         }
         let context = getContext(this);
         context?.windowStage?.getMainWindow().then(data => {
@@ -341,10 +342,10 @@ export class CustomAppBarForPC extends ViewPU {
      */
     setCustomCallback(eventName, param) {
         if (param === null || param === '' || param === undefined) {
-            hilog.warn(0x0000, 'testTag', 'invalid params');
+            hilog.warn(0x3900, LOG_TAG, 'invalid params');
             return;
         }
-        hilog.info(0x0000, 'testTag', `setCustomCallback called, eventName = ${eventName}`);
+        hilog.info(0x3900, LOG_TAG, `setCustomCallback called, eventName = ${eventName}`);
         if (eventName === ARKUI_APP_BAR_COLOR_CONFIGURATION) {
             this.onColorConfigurationUpdate(this.parseBoolean(param));
         }
