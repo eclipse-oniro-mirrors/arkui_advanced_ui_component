@@ -18,6 +18,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { LengthMetrics, window } from '@kit.ArkUI';
 
+const LOG_TAG: string = 'CustomAppBarForPc';
 const BUTTON_WIDTH: number = 28;
 const VIEW_HEIGHT: number = 28;
 const IMAGE_SIZE: number = 16;
@@ -99,7 +100,7 @@ export struct CustomAppBarForPC {
     let bundleFlags = bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_HAP_MODULE;
     try {
       bundleManager.getBundleInfoForSelf(bundleFlags).then((data) => {
-        hilog.info(0x0000, 'testTag', 'getBundleInfoForSelf successfully. Data: %{public}s',
+        hilog.info(0x3900, LOG_TAG, 'getBundleInfoForSelf successfully. Data: %{public}s',
           JSON.stringify(data.hapModulesInfo[0].deviceTypes));
         let devicetype = data.hapModulesInfo[0].deviceTypes;
         for (let i = 0; i < devicetype.length; i++) {
@@ -109,11 +110,11 @@ export struct CustomAppBarForPC {
           }
         }
       }).catch((err: BusinessError) => {
-        hilog.error(0x0000, 'testTag', 'getBundleInfoForSelf failed. Cause: %{public}s', err.message);
+        hilog.error(0x3900, LOG_TAG, 'getBundleInfoForSelf failed. Cause: %{public}s', err.message);
       });
     } catch (err) {
       let message = (err as BusinessError).message;
-      hilog.error(0x0000, 'testTag', 'getBundleInfoForSelf failed: %{public}s', message);
+      hilog.error(0x3900, LOG_TAG, 'getBundleInfoForSelf failed: %{public}s', message);
     }
     
     let context = getContext(this) as common.UIAbilityContext;
@@ -176,10 +177,10 @@ export struct CustomAppBarForPC {
    */
   setCustomCallback(eventName: string, param: string) {
     if (param === null || param === '' || param === undefined) {
-      hilog.warn(0x0000, 'testTag', 'invalid params');
+      hilog.warn(0x3900, LOG_TAG, 'invalid params');
       return;
     }
-    hilog.info(0x0000, 'testTag', `setCustomCallback called, eventName = ${eventName}`);
+    hilog.info(0x3900, LOG_TAG, `setCustomCallback called, eventName = ${eventName}`);
     if (eventName === ARKUI_APP_BAR_COLOR_CONFIGURATION) {
       this.onColorConfigurationUpdate(this.parseBoolean(param));
     } else if (eventName === ARKUI_APP_BAR_MENU_SAFE_AREA) {
